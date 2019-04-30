@@ -19,7 +19,6 @@
 	.import		_ppu_mask
 	.import		_oam_clear
 	.import		_oam_meta_spr
-	.import		_music_play
 	.import		_sfx_play
 	.import		_bank_spr
 	.import		_rand8
@@ -271,19 +270,19 @@ _temp2:
 	clc
 	adc     _star_y_speed
 	sta     _star_y_speed
-	bcc     L00E0
+	bcc     L00DE
 	inc     _star_y_speed+1
 ;
 ; if((star_y_speed < 0x8000) && (star_y_speed > 0x0400)) star_y_speed = 0x0400;
 ;
-L00E0:	ldx     _star_y_speed+1
+L00DE:	ldx     _star_y_speed+1
 	cpx     #$80
-	bcs     L00E1
+	bcs     L00DF
 	lda     _star_y_speed
 	cmp     #$01
 	lda     _star_y_speed+1
 	sbc     #$04
-	bcc     L00E1
+	bcc     L00DF
 	ldx     #$04
 	lda     #$00
 	sta     _star_y_speed
@@ -291,7 +290,7 @@ L00E0:	ldx     _star_y_speed+1
 ;
 ; star_x += star_x_speed;
 ;
-L00E1:	lda     _star_x_speed
+L00DF:	lda     _star_x_speed
 	clc
 	adc     _star_x
 	sta     _star_x
@@ -305,13 +304,13 @@ L00E1:	lda     _star_x_speed
 	cmp     #$00
 	lda     _star_x+1
 	sbc     #$F0
-	bcc     L00EB
+	bcc     L00E9
 	lda     #$00
 	sta     _star_active
 ;
 ; star_y += star_y_speed;
 ;
-L00EB:	lda     _star_y_speed
+L00E9:	lda     _star_y_speed
 	clc
 	adc     _star_y
 	sta     _star_y
@@ -325,13 +324,13 @@ L00EB:	lda     _star_y_speed
 	cmp     #$00
 	lda     _star_y+1
 	sbc     #$E0
-	bcc     L00F1
+	bcc     L00EF
 	lda     #$00
 	sta     _star_active
 ;
 ; }
 ;
-L00F1:	rts
+L00EF:	rts
 
 .endproc
 
@@ -350,7 +349,7 @@ L00F1:	rts
 ;
 	lda     _score1
 	cmp     #$0A
-	bcc     L0176
+	bcc     L0174
 ;
 ; score1 = 0;
 ;
@@ -365,7 +364,7 @@ L00F1:	rts
 ;
 	lda     _score10
 	cmp     #$0A
-	bcc     L0176
+	bcc     L0174
 ;
 ; score10 = 0;
 ;
@@ -380,7 +379,7 @@ L00F1:	rts
 ;
 	lda     _score100
 	cmp     #$0A
-	bcc     L0176
+	bcc     L0174
 ;
 ; score100 = 0;
 ;
@@ -393,9 +392,9 @@ L00F1:	rts
 ;
 ; if(score1000 >= 10){ // maximum 9999
 ;
-L0176:	lda     _score1000
+L0174:	lda     _score1000
 	cmp     #$0A
-	bcc     L0177
+	bcc     L0175
 ;
 ; score1000 = 9;
 ;
@@ -416,7 +415,7 @@ L0176:	lda     _score1000
 ;
 ; temp1 = score1000 + 0x30;
 ;
-L0177:	lda     _score1000
+L0175:	lda     _score1000
 	clc
 	adc     #$30
 	sta     _temp1
@@ -531,9 +530,9 @@ L0177:	lda     _score1000
 	and     #$1F
 	sec
 	sbc     #$0F
-	bcs     L014F
+	bcs     L014D
 	dex
-L014F:	jsr     shlax4
+L014D:	jsr     shlax4
 	sta     _star_x_speed
 	stx     _star_x_speed+1
 ;
@@ -618,7 +617,7 @@ L014F:	jsr     shlax4
 ; if(star_color == 0){
 ;
 	lda     _star_color
-	bne     L0166
+	bne     L0164
 ;
 ; sprid = oam_meta_spr(temp1, temp2, sprid, StarDark);
 ;
@@ -637,11 +636,11 @@ L014F:	jsr     shlax4
 ;
 ; else{
 ;
-	jmp     L0179
+	jmp     L0177
 ;
 ; sprid = oam_meta_spr(temp1, temp2, sprid, StarLight);
 ;
-L0166:	jsr     decsp3
+L0164:	jsr     decsp3
 	lda     _temp1
 	ldy     #$02
 	sta     (sp),y
@@ -653,7 +652,7 @@ L0166:	jsr     decsp3
 	sta     (sp),y
 	lda     #<(_StarLight)
 	ldx     #>(_StarLight)
-L0179:	jsr     _oam_meta_spr
+L0177:	jsr     _oam_meta_spr
 	sta     _sprid
 ;
 ; }
@@ -710,11 +709,6 @@ L0179:	jsr     _oam_meta_spr
 ;
 	jsr     _ppu_wait_nmi
 ;
-; music_play(0); // silence
-;
-	lda     #$00
-	jsr     _music_play
-;
 ; set_vram_buffer(); // points ppu update to vram_buffer, do this at least once
 ;
 	jsr     _set_vram_buffer
@@ -729,7 +723,7 @@ L0179:	jsr     _oam_meta_spr
 ;
 ; ppu_wait_nmi(); // wait till beginning of the frame
 ;
-L00A8:	jsr     _ppu_wait_nmi
+L00A6:	jsr     _ppu_wait_nmi
 ;
 ; clear_vram_buffer();
 ;
@@ -759,7 +753,7 @@ L00A8:	jsr     _ppu_wait_nmi
 ; if(star_active){
 ;
 	lda     _star_active
-	beq     L00B6
+	beq     L00B4
 ;
 ; move_star();
 ;
@@ -772,9 +766,9 @@ L00A8:	jsr     _ppu_wait_nmi
 ; if((pad2_zapper)&&(zapper_ready)){
 ;
 	lda     _pad2_zapper
-	beq     L00A8
+	beq     L00A6
 	lda     _zapper_ready
-	beq     L00A8
+	beq     L00A6
 ;
 ; sfx_play(0,0);
 ;
@@ -821,7 +815,7 @@ L00A8:	jsr     _ppu_wait_nmi
 ; if(hit_detected){
 ;
 	lda     _hit_detected
-	beq     L00A8
+	beq     L00A6
 ;
 ; ++score1;
 ;
@@ -843,9 +837,9 @@ L00A8:	jsr     _ppu_wait_nmi
 ;
 ; else if(star_wait){
 ;
-	jmp     L00A8
-L00B6:	lda     _star_wait
-	beq     L00D8
+	jmp     L00A6
+L00B4:	lda     _star_wait
+	beq     L00D6
 ;
 ; --star_wait;
 ;
@@ -853,15 +847,15 @@ L00B6:	lda     _star_wait
 ;
 ; else{
 ;
-	jmp     L00A8
+	jmp     L00A6
 ;
 ; new_star();
 ;
-L00D8:	jsr     _new_star
+L00D6:	jsr     _new_star
 ;
 ; while (1){
 ;
-	jmp     L00A8
+	jmp     L00A6
 
 .endproc
 

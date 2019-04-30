@@ -261,7 +261,9 @@ detectNTSC:
 .segment "RODATA"
 
 music_data:
-	.include "MUSIC/Silence.s"
+;	.include "MUSIC/Silence.s"
+; since we have no music included, don't try to play a song
+; or it will crash the game.
 
 
 

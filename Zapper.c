@@ -56,7 +56,7 @@ void main (void) {
 	
 	ppu_wait_nmi(); // wait
 	
-	music_play(0); // silence
+//	music_play(0); // silence
 	
 	set_vram_buffer(); // points ppu update to vram_buffer, do this at least once
 	
