@@ -72,7 +72,6 @@ void main (void) {
 		clear_vram_buffer();
 		
 		oam_clear();
-		sprid = 0;
 		
 		zapper_ready = pad2_zapper^1; // XOR last frame, make sure not held down still
 		
@@ -185,17 +184,17 @@ void new_star(void){
 void draw_box(void){
 	temp1 = high_byte(star_x);
 	temp2 = high_byte(star_y);
-	sprid = oam_meta_spr(temp1, temp2, sprid, WhiteBox);
+	oam_meta_spr(temp1, temp2, WhiteBox);
 }
 
 void draw_star(void){
 	temp1 = high_byte(star_x);
 	temp2 = high_byte(star_y);
 	if(star_color == 0){
-		sprid = oam_meta_spr(temp1, temp2, sprid, StarDark);
+		oam_meta_spr(temp1, temp2, StarDark);
 	}
 	else{
-		sprid = oam_meta_spr(temp1, temp2, sprid, StarLight);
+		oam_meta_spr(temp1, temp2, StarLight);
 	}
 }
 

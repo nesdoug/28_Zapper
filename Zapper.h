@@ -3,7 +3,6 @@
 #pragma bss-name(push, "ZEROPAGE")
 unsigned char pad2_zapper;
 unsigned char zapper_ready; //wait till it's 0
-unsigned char sprid;
 unsigned char hit_detected;
 
 unsigned char score1000;

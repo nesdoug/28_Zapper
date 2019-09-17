@@ -31,7 +31,6 @@
 	.import		_zap_read
 	.export		_pad2_zapper
 	.export		_zapper_ready
-	.export		_sprid
 	.export		_hit_detected
 	.export		_score1000
 	.export		_score100
@@ -221,8 +220,6 @@ _pad2_zapper:
 	.res	1,$00
 _zapper_ready:
 	.res	1,$00
-_sprid:
-	.res	1,$00
 _hit_detected:
 	.res	1,$00
 _score1000:
@@ -270,19 +267,19 @@ _temp2:
 	clc
 	adc     _star_y_speed
 	sta     _star_y_speed
-	bcc     L00DE
+	bcc     L00DC
 	inc     _star_y_speed+1
 ;
 ; if((star_y_speed < 0x8000) && (star_y_speed > 0x0400)) star_y_speed = 0x0400;
 ;
-L00DE:	ldx     _star_y_speed+1
+L00DC:	ldx     _star_y_speed+1
 	cpx     #$80
-	bcs     L00DF
+	bcs     L00DD
 	lda     _star_y_speed
 	cmp     #$01
 	lda     _star_y_speed+1
 	sbc     #$04
-	bcc     L00DF
+	bcc     L00DD
 	ldx     #$04
 	lda     #$00
 	sta     _star_y_speed
@@ -290,7 +287,7 @@ L00DE:	ldx     _star_y_speed+1
 ;
 ; star_x += star_x_speed;
 ;
-L00DF:	lda     _star_x_speed
+L00DD:	lda     _star_x_speed
 	clc
 	adc     _star_x
 	sta     _star_x
@@ -304,13 +301,13 @@ L00DF:	lda     _star_x_speed
 	cmp     #$00
 	lda     _star_x+1
 	sbc     #$F0
-	bcc     L00E9
+	bcc     L00E7
 	lda     #$00
 	sta     _star_active
 ;
 ; star_y += star_y_speed;
 ;
-L00E9:	lda     _star_y_speed
+L00E7:	lda     _star_y_speed
 	clc
 	adc     _star_y
 	sta     _star_y
@@ -324,13 +321,13 @@ L00E9:	lda     _star_y_speed
 	cmp     #$00
 	lda     _star_y+1
 	sbc     #$E0
-	bcc     L00EF
+	bcc     L00ED
 	lda     #$00
 	sta     _star_active
 ;
 ; }
 ;
-L00EF:	rts
+L00ED:	rts
 
 .endproc
 
@@ -349,7 +346,7 @@ L00EF:	rts
 ;
 	lda     _score1
 	cmp     #$0A
-	bcc     L0174
+	bcc     L016C
 ;
 ; score1 = 0;
 ;
@@ -364,7 +361,7 @@ L00EF:	rts
 ;
 	lda     _score10
 	cmp     #$0A
-	bcc     L0174
+	bcc     L016C
 ;
 ; score10 = 0;
 ;
@@ -379,7 +376,7 @@ L00EF:	rts
 ;
 	lda     _score100
 	cmp     #$0A
-	bcc     L0174
+	bcc     L016C
 ;
 ; score100 = 0;
 ;
@@ -392,9 +389,9 @@ L00EF:	rts
 ;
 ; if(score1000 >= 10){ // maximum 9999
 ;
-L0174:	lda     _score1000
+L016C:	lda     _score1000
 	cmp     #$0A
-	bcc     L0175
+	bcc     L016D
 ;
 ; score1000 = 9;
 ;
@@ -415,7 +412,7 @@ L0174:	lda     _score1000
 ;
 ; temp1 = score1000 + 0x30;
 ;
-L0175:	lda     _score1000
+L016D:	lda     _score1000
 	clc
 	adc     #$30
 	sta     _temp1
@@ -530,9 +527,9 @@ L0175:	lda     _score1000
 	and     #$1F
 	sec
 	sbc     #$0F
-	bcs     L014D
+	bcs     L014B
 	dex
-L014D:	jsr     shlax4
+L014B:	jsr     shlax4
 	sta     _star_x_speed
 	stx     _star_x_speed+1
 ;
@@ -570,26 +567,18 @@ L014D:	jsr     shlax4
 	lda     _star_y+1
 	sta     _temp2
 ;
-; sprid = oam_meta_spr(temp1, temp2, sprid, WhiteBox);
+; oam_meta_spr(temp1, temp2, WhiteBox);
 ;
-	jsr     decsp3
+	jsr     decsp2
 	lda     _temp1
-	ldy     #$02
+	ldy     #$01
 	sta     (sp),y
 	lda     _temp2
 	dey
 	sta     (sp),y
-	lda     _sprid
-	dey
-	sta     (sp),y
 	lda     #<(_WhiteBox)
 	ldx     #>(_WhiteBox)
-	jsr     _oam_meta_spr
-	sta     _sprid
-;
-; }
-;
-	rts
+	jmp     _oam_meta_spr
 
 .endproc
 
@@ -617,47 +606,33 @@ L014D:	jsr     shlax4
 ; if(star_color == 0){
 ;
 	lda     _star_color
-	bne     L0164
+	bne     L0160
 ;
-; sprid = oam_meta_spr(temp1, temp2, sprid, StarDark);
+; oam_meta_spr(temp1, temp2, StarDark);
 ;
-	jsr     decsp3
+	jsr     decsp2
 	lda     _temp1
-	ldy     #$02
+	ldy     #$01
 	sta     (sp),y
 	lda     _temp2
-	dey
-	sta     (sp),y
-	lda     _sprid
 	dey
 	sta     (sp),y
 	lda     #<(_StarDark)
 	ldx     #>(_StarDark)
+	jmp     _oam_meta_spr
 ;
-; else{
+; oam_meta_spr(temp1, temp2, StarLight);
 ;
-	jmp     L0177
-;
-; sprid = oam_meta_spr(temp1, temp2, sprid, StarLight);
-;
-L0164:	jsr     decsp3
+L0160:	jsr     decsp2
 	lda     _temp1
-	ldy     #$02
+	ldy     #$01
 	sta     (sp),y
 	lda     _temp2
 	dey
 	sta     (sp),y
-	lda     _sprid
-	dey
-	sta     (sp),y
 	lda     #<(_StarLight)
 	ldx     #>(_StarLight)
-L0177:	jsr     _oam_meta_spr
-	sta     _sprid
-;
-; }
-;
-	rts
+	jmp     _oam_meta_spr
 
 .endproc
 
@@ -733,11 +708,6 @@ L00A6:	jsr     _ppu_wait_nmi
 ;
 	jsr     _oam_clear
 ;
-; sprid = 0;
-;
-	lda     #$00
-	sta     _sprid
-;
 ; zapper_ready = pad2_zapper^1; // XOR last frame, make sure not held down still
 ;
 	lda     _pad2_zapper
@@ -753,7 +723,7 @@ L00A6:	jsr     _ppu_wait_nmi
 ; if(star_active){
 ;
 	lda     _star_active
-	beq     L00B4
+	beq     L00B2
 ;
 ; move_star();
 ;
@@ -838,8 +808,8 @@ L00A6:	jsr     _ppu_wait_nmi
 ; else if(star_wait){
 ;
 	jmp     L00A6
-L00B4:	lda     _star_wait
-	beq     L00D6
+L00B2:	lda     _star_wait
+	beq     L00D4
 ;
 ; --star_wait;
 ;
@@ -851,7 +821,7 @@ L00B4:	lda     _star_wait
 ;
 ; new_star();
 ;
-L00D6:	jsr     _new_star
+L00D4:	jsr     _new_star
 ;
 ; while (1){
 ;
