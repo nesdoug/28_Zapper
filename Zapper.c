@@ -60,16 +60,12 @@ void main (void) {
 	
 	set_vram_buffer(); // points ppu update to vram_buffer, do this at least once
 	
-	clear_vram_buffer();
-	
 	ppu_on_all(); // turn on screen
 	
 	
 	while (1){
 		// infinite loop
 		ppu_wait_nmi(); // wait till beginning of the frame
-		
-		clear_vram_buffer();
 		
 		oam_clear();
 		
